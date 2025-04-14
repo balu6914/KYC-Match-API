@@ -40,3 +40,4 @@ func getEnvAsInt(key string, fallback int) int {
 	}
 	return fallback
 }
+// The LoadConfig function loads the configuration from environment variables or uses default values.
