@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-// KYCRequest represents the incoming request body
+// KYCRequest represents the incoming request body .
 type KYCRequest struct {
 	PhoneNumber          string `json:"phoneNumber"`
 	IDDocument           string `json:"idDocument"`
