@@ -24,7 +24,7 @@ func NewKYCHandler(useCase usecases.KYCUseCase) KYCHandler {
 func (h *kycHandler) Match(c echo.Context) error {
 	var req models.KYCRequest
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"}) // Improved error message
 	}
 
 	ctx := c.Request().Context()
