@@ -3,7 +3,7 @@ package usecases
 import (
 	"context"
 	"fmt"
-	"your_project/models"
+	"your_project/models" // Adjust the import path as per your project structur
 	"your_project/repositories"
 )
 
