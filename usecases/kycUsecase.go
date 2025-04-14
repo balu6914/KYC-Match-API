@@ -2,7 +2,7 @@ package usecases
 
 import (
 	"context"
-	"your_project/models"
+	"/models"
 )
 
 type KYCUseCase interface {
