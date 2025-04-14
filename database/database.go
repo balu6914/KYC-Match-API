@@ -1,6 +1,6 @@
 package database
 
-type Database interface {
+type Database interface { /// Database interface
 	Connect() error
 	Close() error
 }
