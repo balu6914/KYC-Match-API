@@ -2,13 +2,15 @@ package main
 
 import (
 	"log"
-	"your_project/config"
-	"your_project/handlers"
-	"your_project/repositories"
-	"your_project/server"
-	"your_project/usecases"
+
+	"github.com/balu6914/KYC-Match-API/config"
+	"github.com/balu6914/KYC-Match-API/handlers"
+	"github.com/balu6914/KYC-Match-API/repositories"
+	"github.com/balu6914/KYC-Match-API/server"
+	"github.com/balu6914/KYC-Match-API/usecases"
 )
 
+// main initializes and starts the KYC Match API application
 func main() {
 	cfg := config.LoadConfig()
 
@@ -30,4 +32,3 @@ func main() {
 		log.Fatal("failed to start server: ", err)
 	}
 }
-//
