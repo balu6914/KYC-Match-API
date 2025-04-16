@@ -3,18 +3,22 @@ package usecases
 import (
 	"context"
 	"fmt"
-	"your_project/models" // Adjust the import path as per your project structur
-	"your_project/repositories"
+
+	"github.com/balu6914/KYC-Match-API/models"
+	"github.com/balu6914/KYC-Match-API/repositories"
 )
 
+// kycUseCaseImpl implements the KYCUseCase interface
 type kycUseCaseImpl struct {
 	repo repositories.KYCRepository
 }
 
+// NewKYCUseCaseImpl creates a new instance of kycUseCaseImpl
 func NewKYCUseCaseImpl(repo repositories.KYCRepository) KYCUseCase {
 	return &kycUseCaseImpl{repo: repo}
 }
 
+// MatchCustomer handles the business logic for matching customer data
 func (u *kycUseCaseImpl) MatchCustomer(ctx context.Context, req models.KYCRequest) (*models.KYCResponse, error) {
 	if req.PhoneNumber == "" && allFieldsEmpty(req) {
 		return nil, fmt.Errorf("at least one field besides phoneNumber must be provided")
@@ -49,6 +53,7 @@ func (u *kycUseCaseImpl) MatchCustomer(ctx context.Context, req models.KYCReques
 	return response, nil
 }
 
+// allFieldsEmpty checks if all request fields (except phoneNumber) are empty
 func allFieldsEmpty(req models.KYCRequest) bool {
 	return req.IDDocument == "" && req.Name == "" && req.GivenName == "" && req.FamilyName == "" &&
 		req.NameKanaHankaku == "" && req.NameKanaZenkaku == "" && req.MiddleNames == "" &&
@@ -58,6 +63,7 @@ func allFieldsEmpty(req models.KYCRequest) bool {
 		req.Email == "" && req.Gender == ""
 }
 
+// matchField compares two fields and returns a MatchResult
 func matchField(input, stored string) models.MatchResult {
 	if input == "" || stored == "" {
 		return models.MatchResult{Value: "not_available"}

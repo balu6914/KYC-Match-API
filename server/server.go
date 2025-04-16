@@ -1,22 +1,25 @@
 package server
 
 import (
-	"your_project/handlers"
+	"github.com/balu6914/KYC-Match-API/handlers"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
+// Server defines the interface for the server operations
 type Server interface {
 	Start() error
 }
 
+// EchoServer implements the Server interface using Echo framework
 type EchoServer struct {
 	e       *echo.Echo
-	handler *handlers.KYCHandler
+	handler handlers.KYCHandler // Changed from *handlers.KYCHandler to handlers.KYCHandler
 }
 
-func NewEchoServer(handler *handlers.KYCHandler) *EchoServer {
+// NewEchoServer creates a new instance of EchoServer
+func NewEchoServer(handler handlers.KYCHandler) *EchoServer {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
@@ -31,4 +34,3 @@ func (s *EchoServer) Start() error {
 	s.e.POST("/match", s.handler.Match)
 	return s.e.Start(":8080")
 }
-//	

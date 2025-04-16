@@ -3,24 +3,28 @@ package handlers
 import (
 	"net/http"
 
-	"your_project/models"
-	"your_project/usecases"
+	"github.com/balu6914/KYC-Match-API/models"
+	"github.com/balu6914/KYC-Match-API/usecases"
 
 	"github.com/labstack/echo/v4"
 )
 
+// KYCHandler defines the interface for handling KYC match requests
 type KYCHandler interface {
 	Match(c echo.Context) error
 }
 
+// kycHandler implements the KYCHandler interface
 type kycHandler struct {
 	useCase usecases.KYCUseCase
 }
 
+// NewKYCHandler creates a new instance of kycHandler
 func NewKYCHandler(useCase usecases.KYCUseCase) KYCHandler {
 	return &kycHandler{useCase: useCase}
 }
 
+// Match handles the POST /match endpoint to verify customer identity
 func (h *kycHandler) Match(c echo.Context) error {
 	var req models.KYCRequest
 	if err := c.Bind(&req); err != nil {
