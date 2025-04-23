@@ -8,10 +8,17 @@ import (
 	"github.com/balu6914/KYC-Match-API/repositories"
 	"github.com/balu6914/KYC-Match-API/server"
 	"github.com/balu6914/KYC-Match-API/usecases"
+	"github.com/joho/godotenv"
 )
 
 // main initializes and starts the KYC Match API application
 func main() {
+	// Load .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Warning: Error loading .env file, using default environment variables:", err)
+	}
+
 	cfg := config.LoadConfig()
 
 	// Initialize repository
