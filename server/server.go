@@ -1,24 +1,22 @@
 package server
 
 import (
-	"github.com/balu6914/KYC-Match-API/handlers"
+	"net/http"
 
+	"github.com/balu6914/KYC-Match-API/handlers"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
-// Server defines the interface for the server operations
 type Server interface {
 	Start() error
 }
 
-// EchoServer implements the Server interface using Echo framework
 type EchoServer struct {
 	e       *echo.Echo
-	handler handlers.KYCHandler // Changed from *handlers.KYCHandler to handlers.KYCHandler
+	handler handlers.KYCHandler
 }
 
-// NewEchoServer creates a new instance of EchoServer
 func NewEchoServer(handler handlers.KYCHandler) *EchoServer {
 	e := echo.New()
 	e.Use(middleware.Logger())
@@ -31,6 +29,20 @@ func NewEchoServer(handler handlers.KYCHandler) *EchoServer {
 }
 
 func (s *EchoServer) Start() error {
+	// Add root route
+	s.e.GET("/", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]string{
+			"message": "Welcome to KYC Match API!",
+		})
+	})
+
+	// Existing KYC match route
 	s.e.POST("/match", s.handler.Match)
+
+	// Handle favicon.ico
+	s.e.GET("/favicon.ico", func(c echo.Context) error {
+		return c.NoContent(http.StatusNoContent)
+	})
+
 	return s.e.Start(":8080")
 }

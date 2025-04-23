@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/balu6914/KYC-Match-API/models"
@@ -13,6 +14,9 @@ type kycUseCaseImpl struct {
 	repo repositories.KYCRepository
 }
 
+// Custom errors
+var ErrIdentifierNotFound = errors.New("IDENTIFIER_NOT_FOUND")
+
 // NewKYCUseCaseImpl creates a new instance of kycUseCaseImpl
 func NewKYCUseCaseImpl(repo repositories.KYCRepository) KYCUseCase {
 	return &kycUseCaseImpl{repo: repo}
@@ -20,47 +24,72 @@ func NewKYCUseCaseImpl(repo repositories.KYCRepository) KYCUseCase {
 
 // MatchCustomer handles the business logic for matching customer data
 func (u *kycUseCaseImpl) MatchCustomer(ctx context.Context, req models.KYCRequest) (*models.KYCResponse, error) {
+	// Validate request: at least one field besides phoneNumber must be provided
 	if req.PhoneNumber == "" && allFieldsEmpty(req) {
+		fmt.Printf("Invalid request: phoneNumber empty and no other fields provided\n")
 		return nil, fmt.Errorf("at least one field besides phoneNumber must be provided")
 	}
 
+	// Query repository for customer
 	customer, err := u.repo.FindCustomerByPhoneNumber(ctx, req.PhoneNumber)
 	if err != nil {
-		return nil, fmt.Errorf("customer not found")
+		fmt.Printf("Error finding customer for phoneNumber %s: %v\n", req.PhoneNumber, err)
+		return nil, fmt.Errorf("failed to find customer: %v", err)
+	}
+	if customer == nil {
+		fmt.Printf("No customer found for phoneNumber: %s\n", req.PhoneNumber)
+		return nil, ErrIdentifierNotFound
 	}
 
-	response := &models.KYCResponse{}
-	response.IDDocumentMatch = matchField(req.IDDocument, customer.IDDocument)
-	response.NameMatch = matchField(req.Name, customer.Name)
-	response.GivenNameMatch = matchField(req.GivenName, customer.GivenName)
-	response.FamilyNameMatch = matchField(req.FamilyName, customer.FamilyName)
-	response.NameKanaHankakuMatch = matchField(req.NameKanaHankaku, customer.NameKanaHankaku)
-	response.NameKanaZenkakuMatch = matchField(req.NameKanaZenkaku, customer.NameKanaZenkaku)
-	response.MiddleNamesMatch = matchField(req.MiddleNames, customer.MiddleNames)
-	response.FamilyNameAtBirthMatch = matchField(req.FamilyNameAtBirth, customer.FamilyNameAtBirth)
-	response.AddressMatch = matchField(req.Address, customer.Address)
-	response.StreetNameMatch = matchField(req.StreetName, customer.StreetName)
-	response.StreetNumberMatch = matchField(req.StreetNumber, customer.StreetNumber)
-	response.PostalCodeMatch = matchField(req.PostalCode, customer.PostalCode)
-	response.RegionMatch = matchField(req.Region, customer.Region)
-	response.LocalityMatch = matchField(req.Locality, customer.Locality)
-	response.CountryMatch = matchField(req.Country, customer.Country)
-	response.HouseNumberExtensionMatch = matchField(req.HouseNumberExtension, customer.HouseNumberExtension)
-	response.BirthdateMatch = matchField(req.Birthdate, customer.Birthdate.Format("2006-01-02"))
-	response.EmailMatch = matchField(req.Email, customer.Email)
-	response.GenderMatch = matchField(req.Gender, customer.Gender)
+	fmt.Printf("Customer found for phoneNumber %s: %+v\n", req.PhoneNumber, customer)
+
+	// Perform field matching
+	response := &models.KYCResponse{
+		IDDocumentMatch:           matchField(req.IDDocument, customer.IDDocument),
+		NameMatch:                 matchField(req.Name, customer.Name),
+		GivenNameMatch:            matchField(req.GivenName, customer.GivenName),
+		FamilyNameMatch:           matchField(req.FamilyName, customer.FamilyName),
+		NameKanaHankakuMatch:      matchField(req.NameKanaHankaku, customer.NameKanaHankaku),
+		NameKanaZenkakuMatch:      matchField(req.NameKanaZenkaku, customer.NameKanaZenkaku),
+		MiddleNamesMatch:          matchField(req.MiddleNames, customer.MiddleNames),
+		FamilyNameAtBirthMatch:    matchField(req.FamilyNameAtBirth, customer.FamilyNameAtBirth),
+		AddressMatch:              matchField(req.Address, customer.Address),
+		StreetNameMatch:           matchField(req.StreetName, customer.StreetName),
+		StreetNumberMatch:         matchField(req.StreetNumber, customer.StreetNumber),
+		PostalCodeMatch:           matchField(req.PostalCode, customer.PostalCode),
+		RegionMatch:               matchField(req.Region, customer.Region),
+		LocalityMatch:             matchField(req.Locality, customer.Locality),
+		CountryMatch:              matchField(req.Country, customer.Country),
+		HouseNumberExtensionMatch: matchField(req.HouseNumberExtension, customer.HouseNumberExtension),
+		BirthdateMatch:            matchField(req.Birthdate, customer.Birthdate),
+		EmailMatch:                matchField(req.Email, customer.Email),
+		GenderMatch:               matchField(req.Gender, customer.Gender),
+	}
 
 	return response, nil
 }
 
 // allFieldsEmpty checks if all request fields (except phoneNumber) are empty
 func allFieldsEmpty(req models.KYCRequest) bool {
-	return req.IDDocument == "" && req.Name == "" && req.GivenName == "" && req.FamilyName == "" &&
-		req.NameKanaHankaku == "" && req.NameKanaZenkaku == "" && req.MiddleNames == "" &&
-		req.FamilyNameAtBirth == "" && req.Address == "" && req.StreetName == "" &&
-		req.StreetNumber == "" && req.PostalCode == "" && req.Region == "" && req.Locality == "" &&
-		req.Country == "" && req.HouseNumberExtension == "" && req.Birthdate == "" &&
-		req.Email == "" && req.Gender == ""
+	return req.IDDocument == "" &&
+		req.Name == "" &&
+		req.GivenName == "" &&
+		req.FamilyName == "" &&
+		req.NameKanaHankaku == "" &&
+		req.NameKanaZenkaku == "" &&
+		req.MiddleNames == "" &&
+		req.FamilyNameAtBirth == "" &&
+		req.Address == "" &&
+		req.StreetName == "" &&
+		req.StreetNumber == "" &&
+		req.PostalCode == "" &&
+		req.Region == "" &&
+		req.Locality == "" &&
+		req.Country == "" &&
+		req.HouseNumberExtension == "" &&
+		req.Birthdate == "" &&
+		req.Email == "" &&
+		req.Gender == ""
 }
 
 // matchField compares two fields and returns a MatchResult

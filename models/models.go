@@ -1,8 +1,6 @@
 package models
 
-import "time"
-
-// KYCRequest represents the incoming request body .
+// KYCRequest represents the incoming request body.
 type KYCRequest struct {
 	PhoneNumber          string `json:"phoneNumber"`
 	IDDocument           string `json:"idDocument"`
@@ -58,24 +56,27 @@ type KYCResponse struct {
 
 // Customer represents the entity stored in HarperDB
 type Customer struct {
-	PhoneNumber          string    `json:"phoneNumber"`
-	IDDocument           string    `json:"idDocument"`
-	Name                 string    `json:"name"`
-	GivenName            string    `json:"givenName"`
-	FamilyName           string    `json:"familyName"`
-	NameKanaHankaku      string    `json:"nameKanaHankaku"`
-	NameKanaZenkaku      string    `json:"nameKanaZenkaku"`
-	MiddleNames          string    `json:"middleNames"`
-	FamilyNameAtBirth    string    `json:"familyNameAtBirth"`
-	Address              string    `json:"address"`
-	StreetName           string    `json:"streetName"`
-	StreetNumber         string    `json:"streetNumber"`
-	PostalCode           string    `json:"postalCode"`
-	Region               string    `json:"region"`
-	Locality             string    `json:"locality"`
-	Country              string    `json:"country"`
-	HouseNumberExtension string    `json:"houseNumberExtension"`
-	Birthdate            time.Time `json:"birthdate"`
-	Email                string    `json:"email"`
-	Gender               string    `json:"gender"`
+	ID                   string  `json:"id"`
+	PhoneNumber          string  `json:"phoneNumber"`
+	IDDocument           string  `json:"idDocument"`
+	Name                 string  `json:"name"`
+	GivenName            string  `json:"givenName"`
+	FamilyName           string  `json:"familyName"`
+	NameKanaHankaku      string  `json:"nameKanaHankaku"`
+	NameKanaZenkaku      string  `json:"nameKanaZenkaku"`
+	MiddleNames          string  `json:"middleNames"`
+	FamilyNameAtBirth    string  `json:"familyNameAtBirth"`
+	Address              string  `json:"address"`
+	StreetName           string  `json:"streetName"`
+	StreetNumber         string  `json:"streetNumber"`
+	PostalCode           string  `json:"postalCode"`
+	Region               string  `json:"region"`
+	Locality             string  `json:"locality"`
+	Country              string  `json:"country"`
+	HouseNumberExtension string  `json:"houseNumberExtension"`
+	Birthdate            string  `json:"birthdate"`
+	Email                string  `json:"email"`
+	Gender               string  `json:"gender"`
+	CreatedTime          float64 `json:"__createdtime__"`
+	UpdatedTime          float64 `json:"__updatedtime__"`
 }

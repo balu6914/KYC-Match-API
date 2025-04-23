@@ -3,8 +3,9 @@ package repositories
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -12,22 +13,21 @@ import (
 	"github.com/balu6914/KYC-Match-API/models"
 )
 
-// harperdbRepository implements the KYCRepository interface using HarperDB REST API
-type harperdbRepository struct {
+type HarperDBRepository struct {
 	config *config.Config
 }
 
-// NewHarperDBRepository creates a new instance of harperdbRepository
-func NewHarperDBRepository(cfg *config.Config) (KYCRepository, error) {
-	return &harperdbRepository{config: cfg}, nil
+func NewHarperDBRepository(cfg *config.Config) (*HarperDBRepository, error) {
+	return &HarperDBRepository{config: cfg}, nil
 }
 
-// FindCustomerByPhoneNumber retrieves a customer by phone number from HarperDB
-func (r *harperdbRepository) FindCustomerByPhoneNumber(ctx context.Context, phoneNumber string) (*models.Customer, error) {
-	url := fmt.Sprintf("http://%s:%d/rest/%s/customers", r.config.HarperDBHost, r.config.HarperDBPort, r.config.HarperDBSchema)
+func (r *HarperDBRepository) FindCustomerByPhoneNumber(ctx context.Context, phoneNumber string) (*models.Customer, error) {
+	url := fmt.Sprintf("http://%s:%d", r.config.HarperDBHost, r.config.HarperDBPort)
 	query := fmt.Sprintf(`{"operation":"sql","sql":"SELECT * FROM %s.customers WHERE phoneNumber = '%s'"}`, r.config.HarperDBSchema, phoneNumber)
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(query))
+	fmt.Printf("HarperDB Query: %s\n", query)
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, strings.NewReader(query))
 	if err != nil {
 		return nil, err
 	}
@@ -42,23 +42,29 @@ func (r *harperdbRepository) FindCustomerByPhoneNumber(ctx context.Context, phon
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("HarperDB request failed with status: %s", resp.Status)
-	}
-
-	body, err := io.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	var result []models.Customer
-	if err := json.Unmarshal(body, &result); err != nil {
+	fmt.Printf("HarperDB Response: Status=%d, Body=%s\n", resp.StatusCode, string(body))
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New("HarperDB request failed with status: " + resp.Status)
+	}
+
+	var customers []models.Customer
+	if err := json.Unmarshal(body, &customers); err != nil {
+		fmt.Printf("Unmarshal Error: %v\n", err)
 		return nil, err
 	}
 
-	if len(result) == 0 {
-		return nil, fmt.Errorf("customer not found")
+	fmt.Printf("Unmarshalled Customers: %v\n", customers)
+
+	if len(customers) == 0 {
+		fmt.Println("No customers found")
+		return nil, nil
 	}
 
-	return &result[0], nil
+	return &customers[0], nil
 }

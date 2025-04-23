@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 )
@@ -15,7 +16,7 @@ type Config struct {
 }
 
 func LoadConfig() *Config {
-	return &Config{
+	cfg := &Config{
 		HarperDBHost:     getEnv("HARPERDB_HOST", "localhost"),
 		HarperDBPort:     getEnvAsInt("HARPERDB_PORT", 9925),
 		HarperDBUsername: getEnv("HARPERDB_USERNAME", "admin"),
@@ -23,6 +24,8 @@ func LoadConfig() *Config {
 		HarperDBSchema:   getEnv("HARPERDB_SCHEMA", "kyc_data"),
 		APIServerPort:    getEnv("API_SERVER_PORT", ":8080"),
 	}
+	fmt.Printf("Loaded Config: Host=%s, Port=%d, Username=%s, Password=%s, Schema=%s\n", cfg.HarperDBHost, cfg.HarperDBPort, cfg.HarperDBUsername, cfg.HarperDBPassword, cfg.HarperDBSchema)
+	return cfg
 }
 
 func getEnv(key, fallback string) string {
@@ -40,4 +43,3 @@ func getEnvAsInt(key string, fallback int) int {
 	}
 	return fallback
 }
-// The LoadConfig function loads the configuration from environment variables or uses default values.
