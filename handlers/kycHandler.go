@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/balu6914/KYC-Match-API/models"
 	"github.com/balu6914/KYC-Match-API/usecases"
-
 	"github.com/labstack/echo/v4"
 )
 
@@ -34,6 +34,13 @@ func (h *kycHandler) Match(c echo.Context) error {
 	ctx := c.Request().Context()
 	response, err := h.useCase.MatchCustomer(ctx, req)
 	if err != nil {
+		if errors.Is(err, usecases.ErrIdentifierNotFound) {
+			return c.JSON(http.StatusNotFound, map[string]string{
+				"status":  "404",
+				"code":    "IDENTIFIER_NOT_FOUND",
+				"message": "No customer found for phoneNumber: " + req.PhoneNumber,
+			})
+		}
 		switch err.Error() {
 		case "at least one field besides phoneNumber must be provided":
 			return c.JSON(http.StatusBadRequest, map[string]string{"status": "400", "code": "KNOW_YOUR_CUSTOMER.INVALID_PARAM_COMBINATION", "message": err.Error()})
