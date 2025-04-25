@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - feature/*  # Include feature branches
     tags:
       - 'v*'
   pull_request:
@@ -28,7 +27,7 @@ jobs:
 
   build-and-push:
     needs: test
-    if: github.event_name != 'pull_request'  # Skip for pull requests
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -46,20 +45,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Extract tag based on branch or tag
-        id: extract_tag
+      - name: Extract version
+        id: version
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            # For tags (e.g., v1.0.2)
-            VERSION=${GITHUB_REF#refs/tags/v}
-            echo "TAG=${{ secrets.DOCKERHUB_USERNAME }}/kyc-match-api:${VERSION}" >> $GITHUB_ENV
-            echo "LATEST_TAG=${{ secrets.DOCKERHUB_USERNAME }}/kyc-match-api:latest" >> $GITHUB_ENV
-          else
-            # For branches (e.g., feature/readme-and-docs -> feature-readme-and-docs)
-            BRANCH=$(echo ${{ github.ref_name }} | sed 's/\//-/g')
-            echo "TAG=${{ secrets.DOCKERHUB_USERNAME }}/kyc-match-api:${BRANCH}" >> $GITHUB_ENV
-            echo "LATEST_TAG=" >> $GITHUB_ENV  # No latest tag for branches
-          fi
+          echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+          echo "TAG=${{ secrets.DOCKERHUB_USERNAME }}/kyc-match-api:${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+          echo "LATEST_TAG=${{ secrets.DOCKERHUB_USERNAME }}/kyc-match-api:latest" >> $GITHUB_ENV
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
