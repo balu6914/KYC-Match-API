@@ -1,14 +1,11 @@
 ## KYC Matching API
 A Go-based API for matching KYC (Know Your Customer) data against a HarperDB database, built with the Echo framework and Dockerized for easy deployment.
-
-
 ## Prerequisites
 Go: Version 1.23 or higher
 Docker: For running the API and HarperDB
 Git: For cloning the repository
 Postman: For testing API endpoints
 WSL Ubuntu 22.04.5 (or compatible Linux environment)
-
 ## Project Structure
 ├── README.md
 ├── .dockerignore
@@ -27,7 +24,6 @@ WSL Ubuntu 22.04.5 (or compatible Linux environment)
 ├── server/server.go
 ├── usecases/kycUsecase.go
 ├── usecases/kycUsecaseImpl.go
-
 ## Setup Instructions
 1. Clone the Repository
 git clone https://github.com/balu6914/KYC-Match-API.git
@@ -71,21 +67,16 @@ Loaded Config: Host=harperdb, Port=9925, Username=HDB_ADMIN, Password=..., Schem
 
 5. Test the API with Postman
 - Import the following Postman requests to test the /match endpoint:
-
 ## Non-Existent Phone Number
-
 Method: POST
 URL: http://localhost:8080/match
 Headers:
 Content-Type: application/json
 x-correlator: b4333c46-49c0-4f62-80d7-f0ef930f1c46
-
-
 Body:{
   "phoneNumber": "+99999999999",
   "idDocument": "12345678z"
 }
-
 
 Expected Response: 404 Not Found{
   "code": "IDENTIFIER_NOT_FOUND",
@@ -93,10 +84,7 @@ Expected Response: 404 Not Found{
   "status": "404"
 }
 
-
-
 ## Matching Request
-
 Body:{
   "phoneNumber": "+34629255833",
   "idDocument": "66666666q",
@@ -106,7 +94,6 @@ Body:{
   "birthdate": "1978-08-22",
   "email": "abc@example.com"
 }
-
 
 Expected Response: 200 OK with "value": "true"
 
@@ -124,9 +111,7 @@ Body:{
 
 
 Expected Response: 200 OK with "value": "false", "score": 85
-
 ## Invalid Request
-
 Body:{
   "phoneNumber": ""
 }
@@ -135,9 +120,7 @@ Body:{
 Expected Response: 400 Bad Request{
   "error": "at least one field besides phoneNumber must be provided"
 }
-
 ## Docker Commands
-
 - Build the image:docker build -t balu1921/kyc-match-api:latest .
 
 - Run the API:docker run --rm -p 8080:8080 --env-file .env --network kyc-network --name kyc-api balu1921/kyc-match-api:latest
@@ -149,7 +132,6 @@ Expected Response: 400 Bad Request{
 
 - Check logs:docker logs kyc-api
 - Remove image:docker rmi balu1921/kyc-match-api:latest
-
 ## CI/CD with GitHub Actions
 The .github/workflows/docker-ci.yml workflow:
 
@@ -157,8 +139,6 @@ Triggers: Runs on pushes to main, pull requests, or tags (v*).
 Jobs:
 test: Runs go test ./....
 build-and-push: Builds and pushes the Docker image to balu1921/kyc-match-api for tags (e.g., v1.0.1).
-
-
 
 To trigger a new image build:
 git tag v1.0.1
