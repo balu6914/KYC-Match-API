@@ -1,89 +1,174 @@
+## KYC Matching API
+A Go-based API for matching KYC (Know Your Customer) data against a HarperDB database, built with the Echo framework and Dockerized for easy deployment.
 
 
-## Real-World Example:
+## Prerequisites
+Go: Version 1.23 or higher
+Docker: For running the API and HarperDB
+Git: For cloning the repository
+Postman: For testing API endpoints
+WSL Ubuntu 22.04.5 (or compatible Linux environment)
 
-- Suppose a customer enters:
+## Project Structure
+├── README.md
+├── .dockerignore
+├── .gitignore
+├── .github/workflows/docker-ci.yml
+├── Dockerfile
+├── config/config.go
+├── database/database.go
+├── go.mod
+├── go.sum
+├── handlers/kycHandler.go
+├── main.go
+├── models/models.go
+├── repositories/harperdbRepository.go
+├── repositories/kycRepository.go
+├── server/server.go
+├── usecases/kycUsecase.go
+├── usecases/kycUsecaseImpl.go
 
-{
-  "name": "Johnathan Smith",
-  "address": "123 Main St, London"
+## Setup Instructions
+1. Clone the Repository
+git clone https://github.com/balu6914/KYC-Match-API.git
+cd KYC-Match-API
+
+2. Set Up HarperDB
+Run HarperDB in a Docker container:
+docker run -d --name harperdb -p 9925:9925 -e HDB_ADMIN_USERNAME=HDB_ADMIN -e HDB_ADMIN_PASSWORD=password harperdb/harperdb
+
+## Create a Docker network for communication between the API and HarperDB:
+- docker network create kyc-network
+- docker network connect kyc-network harperdb
+
+- Verify HarperDB is running:
+- docker ps
+
+3. Configure Environment Variables
+Create a .env file in the project root:
+Add the following content:
+HARPERDB_HOST=harperdb
+HARPERDB_PORT=9925
+HARPERDB_USERNAME=HDB_ADMIN
+HARPERDB_PASSWORD=password
+HARPERDB_SCHEMA=kyc_data
+
+Note: The .env file is excluded from Git via .gitignore. Do not commit it.
+
+4. Build and Run the API
+Build the Docker image:
+- docker build -t balu1921/kyc-match-api:latest .
+
+Run the API container on the kyc-network:
+- docker run --rm -p 8080:8080 --env-file .env --network kyc-network --name kyc-api balu1921/kyc-match-api:latest
+
+- Check logs to confirm the API is running:
+- docker logs kyc-api
+
+Expected Output:
+Loaded Config: Host=harperdb, Port=9925, Username=HDB_ADMIN, Password=..., Schema=kyc_data
+⇨ http server started on [::]:8080
+
+5. Test the API with Postman
+- Import the following Postman requests to test the /match endpoint:
+
+## Non-Existent Phone Number
+
+Method: POST
+URL: http://localhost:8080/match
+Headers:
+Content-Type: application/json
+x-correlator: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+
+
+Body:{
+  "phoneNumber": "+99999999999",
+  "idDocument": "12345678z"
 }
 
-- If the Operator has:
 
-    {
-    "name": "Jonathan Smith",
-    "address": "123 Main Street, London"
-    }
-
-- The Jaro-Winkler score might return something like:
-
-{
-  "matchScore": 94
+Expected Response: 404 Not Found{
+  "code": "IDENTIFIER_NOT_FOUND",
+  "message": "No customer found for phoneNumber: +99999999999",
+  "status": "404"
 }
 
 
 
-==================
+## Matching Request
 
-## What is Jaro-Winkler Algorithem
-
-- Jaro-Winkler is a string similarity algorithm that measures how closely two strings resemble each other. It gives a score between 0 and 1 (or 0 to 100 if scaled) — with 1 or 100 meaning an exact match.
-
-It's commonly used in:
-
-        - Identity verification (like KYC)
-
-        - Data deduplication
-
-        - Spell-checking
-
-        - Record linkage
+Body:{
+  "phoneNumber": "+34629255833",
+  "idDocument": "66666666q",
+  "givenName": "Federica",
+  "familyName": "Sanchez Arjona",
+  "name": "Federica Sanchez Arjona",
+  "birthdate": "1978-08-22",
+  "email": "abc@example.com"
+}
 
 
-## How It Works
-- Jaro-Winkler is built in two parts:
+Expected Response: 200 OK with "value": "true"
 
-1. Jaro Distance
-This is the base similarity score between two strings. It considers:
+Non-Matching Request
 
-- Matching characters
-
-- Number of transpositions (order differences)
-
-2. Winkler Boost
-- If the two strings share a common prefix, the score is slightly boosted to reflect the likelihood of it being a good match. This is useful in names and identity matching  (e.g., “Jon” vs “John”).
-
- ## Example Comparison
-Let’s compare:
-
-String A: MARTHA
-String B: MARHTA
-
-Matching characters: M, A, R, T, H, A (6 characters)
-
-Transpositions: H and T are swapped → 1 transposition
-
-🔹 Jaro score ≈ 0.944
-Then since they share a common prefix MAR, Winkler boost is applied, giving
-
-🔸 Jaro-Winkler score ≈ 0.961
+Body:{
+  "phoneNumber": "+34629255833",
+  "idDocument": "12345678z",
+  "givenName": "Maria",
+  "familyName": "Gonzalez",
+  "name": "Maria Gonzalez",
+  "birthdate": "1980-01-01",
+  "email": "maria@example.com"
+}
 
 
- ## Formula
+Expected Response: 200 OK with "value": "false", "score": 85
 
-    J = 1/3 (m/s1 + m/s2 + m-t/m)
+## Invalid Request
 
-   ## Where:
-
-   m = number of matching characters
-   t = number of transpositions ÷ 2
-   s1,s2 = two strings being compared
-
-   JW Distance : JW = J + (l.p.(1 - J))
-        l = length of common prefix
-        p = scalling factor
+Body:{
+  "phoneNumber": ""
+}
 
 
+Expected Response: 400 Bad Request{
+  "error": "at least one field besides phoneNumber must be provided"
+}
 
- 
+## Docker Commands
+
+- Build the image:docker build -t balu1921/kyc-match-api:latest .
+
+- Run the API:docker run --rm -p 8080:8080 --env-file .env --network kyc-network --name kyc-api balu1921/kyc-match-api:latest
+
+- Run HarperDB:docker run -d --name harperdb -p 9925:9925 -e HDB_ADMIN_USERNAME=HDB_ADMIN -e HDB_ADMIN_PASSWORD=password harperdb/harperdb
+
+- Create Docker network:docker network create kyc-network
+- docker network connect kyc-network harperdb
+
+- Check logs:docker logs kyc-api
+- Remove image:docker rmi balu1921/kyc-match-api:latest
+
+## CI/CD with GitHub Actions
+The .github/workflows/docker-ci.yml workflow:
+
+Triggers: Runs on pushes to main, pull requests, or tags (v*).
+Jobs:
+test: Runs go test ./....
+build-and-push: Builds and pushes the Docker image to balu1921/kyc-match-api for tags (e.g., v1.0.1).
+
+
+
+To trigger a new image build:
+git tag v1.0.1
+git push origin v1.0.1
+
+Check the workflow at: https://github.com/balu6914/KYC-Match-API/actions
+Contributing
+
+- Fork the repository.
+- Create a feature branch (git checkout -b feature/your-feature).
+- Commit changes (git commit -m "Add feature").
+- Push to the branch (git push origin feature/your-feature).
+- Open a pull request.
