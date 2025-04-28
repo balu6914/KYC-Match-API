@@ -49,8 +49,6 @@ HARPERDB_USERNAME=HDB_ADMIN
 HARPERDB_PASSWORD=password
 HARPERDB_SCHEMA=kyc_data
 
-Note: The .env file is excluded from Git via .gitignore. Do not commit it.
-
 4. Build and Run the API
 Build the Docker image:
 - docker build -t balu1921/kyc-match-api:latest .
